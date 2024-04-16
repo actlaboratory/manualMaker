@@ -111,9 +111,14 @@ class Main():
         if htmlDir == os.path.join(outputDir, ""):
             shutil.rmtree(outputDir, ignore_errors=True)
             os.mkdir(htmlDir)
-            shutil.copytree(
-                "bootstrap-5.3.0-dist",
-                os.path.join(outputDir, "bootstrap-5.3.0-dist"))
+            os.mkdir(os.path.join(outputDir, "css"))
+            os.mkdir(os.path.join(outputDir, "js"))
+            shutil.copy(
+                "bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js",
+                os.path.join(outputDir, "js/bootstrap.bundle.min.js"))
+            shutil.copy(
+                "bootstrap-5.3.0-dist/css/bootstrap.min.css",
+                os.path.join(outputDir, "css/bootstrap.min.js"))
         else:
             os.mkdir(htmlDir)
         if indexObject.isContentAvailable:
