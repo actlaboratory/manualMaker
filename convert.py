@@ -44,6 +44,12 @@ class Main():
             VAR_PREFIX + "title", title)
         template = template.replace(
             VAR_PREFIX + "rootIndex", self.rootIndexTemplateStr)
+        if indexObject.indexLevel == 1:
+            template = template.replace(
+                VAR_PREFIX + "levelBackD-none", "d-none")
+        else:
+            template = template.replace(
+                VAR_PREFIX + "levelBackD-none", "")
         previousIndexObject = self.getPreviousIndexObjectByPath(
             indexObjectList, indexObject.path)
         nextIndexObject = self.getNextIndexObjectByPath(
