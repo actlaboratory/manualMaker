@@ -28,6 +28,7 @@ class Main():
 
     def createTemplate(
             self, indexObject: IndexObject,
+            indexObjectList: list[IndexObject],
             workDir: str, rootTitle: str = None) -> None:
         if rootTitle is None:
             rootTitle = indexObject.title
@@ -43,8 +44,32 @@ class Main():
             VAR_PREFIX + "title", title)
         template = template.replace(
             VAR_PREFIX + "rootIndex", self.rootIndexTemplateStr)
-        template = template.replace(
-            VAR_PREFIX + "rootDir", ("../" * indexObject.indexLevel)[1:])
+        previousIndexObject = self.getPreviousIndexObjectByPath(
+            indexObjectList, indexObject.path)
+        nextIndexObject = self.getNextIndexObjectByPath(
+            indexObjectList, indexObject.path)
+        if previousIndexObject is None:
+            template = template.replace(
+                VAR_PREFIX + "previousPath", "")
+            template = template.replace(
+                VAR_PREFIX + "disabledPrevious", "disabled")
+        else:
+            template = template.replace(
+                VAR_PREFIX + "previousPath",
+                previousIndexObject.path + "/index.html")
+            template = template.replace(
+                VAR_PREFIX + "disabledPrevious", "")
+        if nextIndexObject is None:
+            template = template.replace(
+                VAR_PREFIX + "nextPath", "")
+            template = template.replace(
+                VAR_PREFIX + "disabledNext", "disabled")
+        else:
+            template = template.replace(
+                VAR_PREFIX + "nextPath",
+                nextIndexObject.path + "/index.html")
+            template = template.replace(
+                VAR_PREFIX + "disabledNext", "")
         if len(indexObject.children) >= 1:
             childrenIndex = self.createChildrenIndexStr(indexObject)
             template = template.replace(
@@ -52,6 +77,8 @@ class Main():
         else:
             template = template.replace(
                 VAR_PREFIX + "childrenIndex", "")
+        template = template.replace(
+            VAR_PREFIX + "rootDir", ("../" * indexObject.indexLevel)[1:])
         indexObject.templateDir = os.path.join(
             workDir, indexObject.path)
         indexObject.templateFile = os.path.join(
@@ -62,7 +89,7 @@ class Main():
         with open(indexObject.templateFile, "w", encoding="UTF-8") as f:
             f.write(template)
         for o in indexObject.children:
-            self.createTemplate(o, workDir, rootTitle)
+            self.createTemplate(o, indexObjectList, workDir, rootTitle)
 
     def createIndexObject(self, rootTitle: str, dir: str, path: str = "",
                           level: int = 1) -> IndexObject:
@@ -90,17 +117,21 @@ class Main():
     def createRootIndexTemplateStr(
             self, indexObject: IndexObject) -> str:
         texts = [
-            f'<ul id="rootIndex_{indexObject.path}" class="collapse">',
-            f'<li><a href="{VAR_PREFIX}rootDir{indexObject.path}/index.html">'
+            f'<ul id="rootIndex_{indexObject.path}"'
+            + ' class="list-group collapse">',
+            '<li class="list-group-item">'
+            + f'<a href="{VAR_PREFIX}rootDir{indexObject.path}/index.html">'
             + f'{indexObject.title}</a></li>']
         for o in indexObject.children:
             if len(o.children) == 0:
                 texts.append(
-                    f'<li><a href="{VAR_PREFIX}rootDir{o.path}/index.html">'
+                    '<li class="list-group-item">'
+                    + f'<a href="{VAR_PREFIX}rootDir{o.path}/index.html">'
                     + f'{o.title}</a></li>')
             else:
                 texts.append(
-                    f'<li><a href="#rootIndex_{o.path}"'
+                    '<li class="list-group-item">'
+                    + f'<a href="#rootIndex_{o.path}"'
                     + ' data-bs-toggle="collapse" aria-expanded="false"'
                     + f' aria-controls="rootIndex_{o.path}">'
                     + f'{o.title}</a>')
@@ -110,17 +141,19 @@ class Main():
         return "\n".join(texts)
 
     def createChildrenIndexStr(self, indexObject: IndexObject) -> str:
-        texts = ["<p><h2>この章の内容</h2></p>", "<ul>"]
+        texts = ["<p><h2>この章の内容</h2></p>", '<ul class="list-group">']
         for o in indexObject.children:
             texts.append(
-                f'<li><a href="{("../" * indexObject.indexLevel)[1:]}{o.path}'
+                '<li class="list-group-item">'
+                + f'<a href="{("../" * indexObject.indexLevel)[1:]}{o.path}'
                 + f'/index.html">{o.title}</a></li>'
             )
         texts.append("</ul>")
         return "\n".join(texts)
-        
 
-    def outputPageSet(self, indexObject: IndexObject, outputDir: str):
+    def outputPageSet(
+            self, indexObject: IndexObject,
+            outputDir: str):
         htmlDir = os.path.join(outputDir, indexObject.path)
         htmlFile = os.path.join(htmlDir, "index.html")
         if htmlDir == os.path.join(outputDir, ""):
@@ -155,9 +188,40 @@ class Main():
         for o in indexObject.children:
             self.outputPageSet(o, outputDir)
 
+    def toIndexObjectList(self, indexObject: IndexObject) -> list[IndexObject]:
+        indexObjectList = []
+        indexObjectList.append(indexObject)
+        for o in indexObject.children:
+            indexObjectList += self.toIndexObjectList(o)
+        return indexObjectList
+    
+    def getPreviousIndexObjectByPath(
+            self,
+            indexObjectList: list[IndexObject], path: str) -> IndexObject:
+        for i, o in enumerate(indexObjectList):
+            if o.path == path:
+                if i - 1 >= 0:
+                    return indexObjectList[i - 1]
+                else:
+                    None
+        return None
+
+    def getNextIndexObjectByPath(
+            self,
+            indexObjectList: list[IndexObject], path: str) -> IndexObject:
+        for i, o in enumerate(indexObjectList):
+            if o.path == path:
+                if i + 1 < len(indexObjectList):
+                    return indexObjectList[i + 1]
+                else:
+                    None
+        return None
+
+
 main = Main()
 io = main.createIndexObject("テスト", "contents")
 idxTmpl = main.createRootIndexTemplateStr(io)
 main.rootIndexTemplateStr = idxTmpl
-main.createTemplate(io, "templateTmp")
+ioList = main.toIndexObjectList(io)
+main.createTemplate(io, ioList, "templateTmp")
 main.outputPageSet(io, "htmlOutput")
