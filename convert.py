@@ -29,7 +29,7 @@ class Main():
     def createTemplate(
             self, indexObject: IndexObject,
             workDir: str, rootTitle: str = None) -> None:
-        if rootTitle == None:
+        if rootTitle is None:
             rootTitle = indexObject.title
             title = rootTitle
         else:
@@ -45,6 +45,13 @@ class Main():
             VAR_PREFIX + "rootIndex", self.rootIndexTemplateStr)
         template = template.replace(
             VAR_PREFIX + "rootDir", ("../" * indexObject.indexLevel)[1:])
+        if len(indexObject.children) >= 1:
+            childrenIndex = self.createChildrenIndexStr(indexObject)
+            template = template.replace(
+                VAR_PREFIX + "childrenIndex", childrenIndex)
+        else:
+            template = template.replace(
+                VAR_PREFIX + "childrenIndex", "")
         indexObject.templateDir = os.path.join(
             workDir, indexObject.path)
         indexObject.templateFile = os.path.join(
@@ -103,7 +110,15 @@ class Main():
         return "\n".join(texts)
 
     def createChildrenIndexStr(self, indexObject: IndexObject) -> str:
-        return ""
+        texts = ["<p><h2>この章の内容</h2></p>", "<ul>"]
+        for o in indexObject.children:
+            texts.append(
+                f'<li><a href="{("../" * indexObject.indexLevel)[1:]}{o.path}'
+                + f'/index.html">{o.title}</a></li>'
+            )
+        texts.append("</ul>")
+        return "\n".join(texts)
+        
 
     def outputPageSet(self, indexObject: IndexObject, outputDir: str):
         htmlDir = os.path.join(outputDir, indexObject.path)
@@ -118,7 +133,7 @@ class Main():
                 os.path.join(outputDir, "js/bootstrap.bundle.min.js"))
             shutil.copy(
                 "bootstrap-5.3.0-dist/css/bootstrap.min.css",
-                os.path.join(outputDir, "css/bootstrap.min.js"))
+                os.path.join(outputDir, "css/bootstrap.min.css"))
         else:
             os.mkdir(htmlDir)
         if indexObject.isContentAvailable:

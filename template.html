@@ -17,16 +17,37 @@
     <h1>_l_l_l_l_0000ACTLAB_titleHeader</h1>
   </p>
 </header>
-<p>
-  <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#rootIndex_" aria-expanded="false" aria-controls="collapseExample">
-    目次"
-  </button>
-</p>
-_l_l_l_l_0000ACTLAB_rootIndex
-$body$
-$for(include-after)$
-$include-after$
-$endfor$
+<div class="container">
+<div class="row gx-4">
+  <div class="col-12 col-md-3">
+    <div class="row gx-2 gy-3">
+      <div class="col-3 col-md-4">
+        <button class="btn btn-primary w-100" type="button">前へ</button>
+      </div>
+      <div class="col-3 col-md-4">
+        <button class="btn btn-primary w-100" type="button">次へ</button>
+      </div>
+      <div class="col-2 col-md-4"></div>
+      <div class="col-4 col-md-8">
+        <p>
+          <button class="btn btn-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#rootIndex_" aria-expanded="false" aria-controls="collapseExample">
+            目次"
+          </button>
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      _l_l_l_l_0000ACTLAB_rootIndex
+    </div>
+  </div>
+  <div class="col-12 col-md-9">
+    $body$
+    $for(include-after)$
+    $include-after$
+    $endfor$
+    <div class="mt-5">_l_l_l_l_0000ACTLAB_childrenIndex</div>
+  </div>
+</div>
 </div>
 </body>
 </html>
